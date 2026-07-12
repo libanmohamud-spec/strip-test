@@ -237,6 +237,8 @@ edited around observed outputs.
 - `prompts/B-contract.md` — procedure removed, contract kept.
 - `prompts/C-minimal.md` — both removed.
 - `truth/elements.md` — the yardstick.
+- `run.py` — six independent API calls, no agent harness. Writes `runs/` and
+  `runs/manifest.json`.
 - `RUN-PROMPT.md` — orchestration for the six runs and the blind scoring.
 - `TASK.md` — human checklist.
 - `runs/` — raw model output, one file per cell. Never edited.
