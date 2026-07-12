@@ -42,13 +42,14 @@ except ImportError:
 
 ROOT = pathlib.Path(__file__).parent
 VARIANTS = ["A-full", "B-contract", "C-minimal"]
+ENCODING = "utf-8"
 
 
 def load_dotenv() -> None:
     env_path = ROOT / ".env"
     if not env_path.exists():
         return
-    for line in env_path.read_text().splitlines():
+    for line in env_path.read_text(encoding=ENCODING).splitlines():
         line = line.strip()
         if not line or line.startswith("#") or "=" not in line:
             continue
@@ -84,7 +85,7 @@ def main() -> int:
     if not design_path.exists():
         sys.exit("design.md not found. Run ./fetch-design.sh first.")
 
-    design = design_path.read_text()
+    design = design_path.read_text(encoding=ENCODING)
     design_hash = sha256(design_path)
 
     runs_dir = ROOT / "runs"
@@ -112,7 +113,7 @@ def main() -> int:
     for gen, model in models.items():
         for variant in VARIANTS:
             prompt_path = ROOT / "prompts" / f"{variant}.md"
-            system = prompt_path.read_text()
+            system = prompt_path.read_text(encoding=ENCODING)
             cell = f"{variant}-{gen}"
 
             print(f"  {cell:22s} {model} ... ", end="", flush=True)
@@ -144,7 +145,7 @@ def main() -> int:
             stop = resp.stop_reason
             hit_ceiling = stop == "max_tokens"
 
-            (runs_dir / f"{cell}.md").write_text(text)
+            (runs_dir / f"{cell}.md").write_text(text, encoding=ENCODING)
 
             manifest["runs"].append(
                 {
@@ -169,7 +170,9 @@ def main() -> int:
             if hit_ceiling:
                 truncated.append(cell)
 
-    (runs_dir / "manifest.json").write_text(json.dumps(manifest, indent=2))
+    (runs_dir / "manifest.json").write_text(
+        json.dumps(manifest, indent=2), encoding=ENCODING
+    )
 
     print()
     if truncated:
