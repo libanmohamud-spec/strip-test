@@ -21,10 +21,9 @@ Verify the model strings against your own API access before running. Hold the
 capability tier roughly constant and vary the generation, or you will be measuring
 model size rather than model generation.
 
-Any run that stops because it hit the output ceiling is VOID. The script fails hard
-rather than writing a truncated run, because a truncated output drops elements
-silently, which is indistinguishable from the contract failing, and would manufacture
-a false positive for our own hypothesis.
+Any run whose stop_reason is not end_turn is VOID — truncation drops elements
+silently; a refusal produces no elements at all. The script fails hard rather than
+letting either case through to scoring.
 """
 
 import argparse
@@ -121,7 +120,7 @@ def main() -> int:
     temp_note = args.temperature if args.temperature is not None else "omitted"
     print(f"max_tokens={args.max_tokens} temperature={temp_note}\n")
 
-    truncated = []
+    void = []
 
     for gen, model in models.items():
         for variant in VARIANTS:
@@ -158,6 +157,7 @@ def main() -> int:
             out_tokens = resp.usage.output_tokens
             stop = resp.stop_reason
             hit_ceiling = stop == "max_tokens"
+            bad = stop != "end_turn"
 
             (runs_dir / f"{cell}.md").write_text(text, encoding=ENCODING)
 
@@ -174,29 +174,36 @@ def main() -> int:
                     "max_tokens": args.max_tokens,
                     "headroom": args.max_tokens - out_tokens,
                     "truncated": hit_ceiling,
+                    "scorable": not bad,
                     "seconds": elapsed,
                 }
             )
 
-            flag = "  <-- TRUNCATED" if hit_ceiling else ""
+            flag = ""
+            if hit_ceiling:
+                flag = "  <-- TRUNCATED"
+            elif stop == "refusal":
+                flag = "  <-- REFUSED"
+            elif bad:
+                flag = f"  <-- {stop.upper()}"
             print(f"{out_tokens:>6} tok  stop={stop}  {elapsed}s{flag}")
 
-            if hit_ceiling:
-                truncated.append(cell)
+            if bad:
+                void.append((cell, stop))
 
     (runs_dir / "manifest.json").write_text(
         json.dumps(manifest, indent=2), encoding=ENCODING
     )
 
     print()
-    if truncated:
-        print("VOID. These runs hit the output ceiling:")
-        for c in truncated:
-            print(f"  {c}")
+    if void:
+        print("VOID. These runs did not complete normally:")
+        for c, s in void:
+            print(f"  {c:22s} stop={s}")
         print(
-            "\nA truncated run drops elements silently. Scoring it would hand us our own\n"
-            "hypothesis for free. Raise --max-tokens and re-run ALL SIX arms, not just\n"
-            "the truncated ones. Do not score anything in runs/."
+            "\nA run that stopped for any reason other than end_turn is not scorable.\n"
+            "Truncation drops elements silently. A refusal produces no elements at all.\n"
+            "Fix the cause and re-run ALL SIX arms. Do not score anything in runs/."
         )
         return 1
 
@@ -208,7 +215,7 @@ def main() -> int:
         print("WARNING: under 10% headroom on:", ", ".join(tight))
         print("Consider raising --max-tokens and re-running all six.\n")
 
-    print("All six runs complete, none truncated.")
+    print("All six runs complete, all end_turn.")
     print("Raw output in runs/. Commit before scoring:\n")
     print('  git add runs/ && git commit -m "six raw runs, pre-scoring"')
     return 0
