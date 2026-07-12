@@ -1,4 +1,0 @@
-fetched:  2026-07-12T17:29:16Z
-source:   https://guacamole.apache.org/doc/1.5.5/gug/
-chapters: guacamole-architecture configuring-guacamole jdbc-auth reverse-proxy
-sha256:   d816f70ea3a2698e007293d13aab91c9b73563ab1bd62ed22ab0e64833716ab5
