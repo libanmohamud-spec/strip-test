@@ -33,9 +33,8 @@ Needs curl and pandoc. Fetches four chapters (v2 substrate), strips pandoc heade
 cruft, normalises line endings. If pandoc is missing: `brew install pandoc`.
 
 - [x] `design.md` exists
-- [x] SHA256 recorded here: `a33fa1273d3eb3e221e8fbeaad34d618e26b760c1b8f193219cdfc4d504acdfe`
-- [ ] Re-run `./fetch-design.sh` and confirm the hash matches (content must match;
-      the `fetched:` timestamp in the header will differ unless pinned)
+- [x] SHA256 recorded here: `d816f70ea3a2698e007293d13aab91c9b73563ab1bd62ed22ab0e64833716ab5`
+- [ ] Re-run `./fetch-design.sh` twice; both runs must print the same sha256 for `design.md`
 - [ ] Opened design.md and confirmed all four chapter bodies are intact
 - [ ] Changed nothing inside the chapter body
 

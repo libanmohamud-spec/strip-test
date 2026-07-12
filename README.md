@@ -37,7 +37,8 @@ Predicted result, stated so it can be wrong:
 
 ## Files
 
-- `fetch-design.sh` — pulls the substrate. Run this first.
+- `fetch-design.sh` — pulls the substrate. Run this first. Writes `design.provenance.txt`
+  (fetch timestamp) beside `design.md`; only `design.md` is hashed for reproducibility.
 - `prompts/A-full.md` — the original prompt, unmodified.
 - `prompts/B-contract.md` — procedure removed, contract kept.
 - `prompts/C-minimal.md` — both removed.
@@ -52,6 +53,11 @@ Apache Guacamole manual, four chapters fetched whole (v2 substrate). Apache Lice
 Fetched verbatim, never authored by us: if we wrote the design doc, we would be choosing
 which elements are buried, and we already have a prediction about what happens to buried
 elements. Publish the sha256 that `fetch-design.sh` prints.
+
+**Committed substrate SHA256:** `d816f70ea3a2698e007293d13aab91c9b73563ab1bd62ed22ab0e64833716ab5`
+
+Clone, run `./fetch-design.sh`, and the hash must match. Fetch timestamp lives in
+`design.provenance.txt`, not in `design.md`.
 
 Chapters: `guacamole-architecture`, `configuring-guacamole`, `jdbc-auth`, `reverse-proxy`.
 Roughly 32,000 words. The architecture chapter alone was too small (~700 words, no data
