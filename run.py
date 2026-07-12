@@ -76,7 +76,12 @@ def main() -> int:
     ap.add_argument("--old", required=True, help="prior-generation model string")
     ap.add_argument("--new", required=True, help="current-generation model string")
     ap.add_argument("--max-tokens", type=int, default=32000)
-    ap.add_argument("--temperature", type=float, default=0.0)
+    ap.add_argument(
+        "--temperature",
+        type=float,
+        default=None,
+        help="omit by default; newer models reject temperature unless thinking is on",
+    )
     ap.add_argument(
         "--thinking-budget",
         type=int,
@@ -113,7 +118,8 @@ def main() -> int:
     }
 
     print(f"design.md sha256: {design_hash}")
-    print(f"max_tokens={args.max_tokens} temperature={args.temperature}\n")
+    temp_note = args.temperature if args.temperature is not None else "omitted"
+    print(f"max_tokens={args.max_tokens} temperature={temp_note}\n")
 
     truncated = []
 
@@ -128,7 +134,6 @@ def main() -> int:
             kwargs = dict(
                 model=model,
                 max_tokens=args.max_tokens,
-                temperature=args.temperature,
                 system=system,
                 messages=[{"role": "user", "content": design}],
             )
@@ -139,6 +144,8 @@ def main() -> int:
                     "budget_tokens": args.thinking_budget,
                 }
                 kwargs["temperature"] = 1.0
+            elif args.temperature is not None:
+                kwargs["temperature"] = args.temperature
 
             t0 = time.time()
             resp = create_message(client, kwargs)
