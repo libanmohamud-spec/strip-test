@@ -1,2 +1,5 @@
 # Regenerated on every fetch; timestamp changes, hash does not.
 design.provenance.txt
+
+# Secrets
+.env
