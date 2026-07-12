@@ -13,7 +13,9 @@ Each cell is:
 
 Usage:
     export ANTHROPIC_API_KEY=...
-    ./run.py --old <model-string> --new <model-string> --max-tokens 32000
+    python run.py --old <model-string> --new <model-string> --max-tokens 32000
+
+On Windows PowerShell, use `python run.py` — `./run.py` does not invoke Python.
 
 Verify the model strings against your own API access before running. Hold the
 capability tier roughly constant and vary the generation, or you will be measuring
@@ -28,6 +30,7 @@ a false positive for our own hypothesis.
 import argparse
 import hashlib
 import json
+import os
 import pathlib
 import sys
 import time
@@ -41,11 +44,27 @@ ROOT = pathlib.Path(__file__).parent
 VARIANTS = ["A-full", "B-contract", "C-minimal"]
 
 
+def load_dotenv() -> None:
+    env_path = ROOT / ".env"
+    if not env_path.exists():
+        return
+    for line in env_path.read_text().splitlines():
+        line = line.strip()
+        if not line or line.startswith("#") or "=" not in line:
+            continue
+        key, value = line.split("=", 1)
+        os.environ.setdefault(key.strip(), value.strip().strip("\"'"))
+
+
 def sha256(path: pathlib.Path) -> str:
     return hashlib.sha256(path.read_bytes()).hexdigest()
 
 
 def main() -> int:
+    load_dotenv()
+    if not os.environ.get("ANTHROPIC_API_KEY"):
+        sys.exit("ANTHROPIC_API_KEY not set. Export it or put it in .env (gitignored).")
+
     ap = argparse.ArgumentParser()
     ap.add_argument("--old", required=True, help="prior-generation model string")
     ap.add_argument("--new", required=True, help="current-generation model string")
