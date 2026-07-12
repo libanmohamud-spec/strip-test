@@ -61,6 +61,12 @@ def sha256(path: pathlib.Path) -> str:
     return hashlib.sha256(path.read_bytes()).hexdigest()
 
 
+def create_message(client: Anthropic, kwargs: dict):
+    """Stream internally; SDK rejects long non-streaming calls (~10 min guard)."""
+    with client.messages.stream(**kwargs) as stream:
+        return stream.get_final_message()
+
+
 def main() -> int:
     load_dotenv()
     if not os.environ.get("ANTHROPIC_API_KEY"):
@@ -101,6 +107,7 @@ def main() -> int:
         "max_tokens": args.max_tokens,
         "temperature": args.temperature,
         "thinking_budget": args.thinking_budget,
+        "streaming": True,
         "models": models,
         "runs": [],
     }
@@ -134,7 +141,7 @@ def main() -> int:
                 kwargs["temperature"] = 1.0
 
             t0 = time.time()
-            resp = client.messages.create(**kwargs)
+            resp = create_message(client, kwargs)
             elapsed = round(time.time() - t0, 1)
 
             text = "".join(
